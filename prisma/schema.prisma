@@ -83,7 +83,7 @@ model sanction {
   targetIp      String?   // 제재 대상 IP 또는 대역 (예: 123.45.67.89/24)
   
   type          String    // 제재 유형: BAN(로그인차단), MUTE(편집금지), SHADOW_BAN
-  serviceName   String    @default("ALL") // 제재 적용 서비스 (ALL, WIKI, BOARD 등)
+  serviceName   String    @default("ALL") // 제재 적용 서비스
   
   reason        String    @db.VarChar(500)
   evidenceUrl   String?   // 증거 스크린샷이나 관련 로그 링크

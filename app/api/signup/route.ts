@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     // 3. 핸들(@) 규칙 검증
     // 영문 소문자와 숫자만 허용 (URL 일관성을 위해 소문자 권장), 3~20자
     const handleRegex = /^[a-z0-9_]{3,20}$/;
-    const reservedHandles = ['admin', 'system', 'root', 'wiki', 'manager', 'official'];
+    const reservedHandles = ['admin', 'system', 'root', 'manager', 'official'];
     
     if (!handleRegex.test(handle)) {
       return NextResponse.json({ 

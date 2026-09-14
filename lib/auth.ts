@@ -319,10 +319,7 @@ export async function AuthWithdraw() {
       // B. 소셜 연동 정보 삭제
       prisma.thirdparty.deleteMany({ where: { userId } }),
 
-      // C. 기여 기록 익명화 (예시: 유저 ID를 null로 업데이트)
-      // prisma.wikiEdit.updateMany({ where: { userId }, data: { userId: null } }),
-
-      // D. 유저 삭제 (또는 상태값 변경)
+      // C. 유저 삭제 (또는 상태값 변경)
       //prisma.user.delete({ where: { id: userId } })
       prisma.user.update({
         where: { id: userId },
