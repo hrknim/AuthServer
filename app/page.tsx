@@ -1,8 +1,8 @@
 import { redirect, RedirectType } from 'next/navigation';
-import { GetSessionUser } from '@/lib/auth';
+import { GetSessionUserData } from '@/lib/auth';
 
 export default async function Home() {
-  const userdata = await GetSessionUser();
+  const userdata = await GetSessionUserData();
   if (!userdata) {
     redirect(`/login`);
   } else {

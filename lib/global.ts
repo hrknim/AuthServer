@@ -1,7 +1,5 @@
 import { cookies, headers } from "next/headers";
 
-export const baseUrl = "https://localhost:3001";
-
 export const LANG_GROUPS = [
   {
     region: "East Asia",
@@ -185,6 +183,10 @@ const PIECES = {
     create_new_account: '새 계정 만들기',
     notuser_title: '방문자님, 환영합니다!',
     notuser_desc: '로그인해서 서비스에 접속하세요.',
+
+    policy_terms: '이용약관',
+    policy_privacy: '개인정보처리방침',
+    footer_desc: 'Auth',
   },
   en: {
     // account
@@ -194,6 +196,10 @@ const PIECES = {
     create_new_account: 'Create Account',
     notuser_title: 'Welcome, Guest!',
     notuser_desc: 'Log in to connect services.',
+
+    policy_terms: 'Terms',
+    policy_privacy: 'Privacy',
+    footer_desc: 'Auth',
   },
 } as const
 

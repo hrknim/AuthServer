@@ -6,7 +6,10 @@ const nextConfig: NextConfig = {
 };
 
 module.exports = {
-  allowedDevOrigins: [''],
+  allowedDevOrigins: [
+    'web.solhae.com',
+    '210.119.82.84'
+  ],
 }
 
 export default nextConfig;

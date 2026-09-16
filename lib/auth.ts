@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { adapter } from '@/lib/prisma'
 import { PrismaClient } from '@prisma/client';
 
-const cookieUrl = '.example.com';
+const cookieUrl = process.env.COOKIE_URL || "localhost";
 const prisma = new PrismaClient({ adapter });
 
 function makePageList(currentPage: number, totalPages: number) {
@@ -39,29 +39,8 @@ function getCountryCode(ip: string): string {
   //return geo ? geo.country : 'Unknown'; // 찾을 수 없으면 'UN' (Unknown)
 }
 
-export async function isIpBanned(ip: string) {
-  const now = new Date();
-
-  const activeSanction = await prisma.sanction.findFirst({
-    where: {
-      targetIp: ip,
-      isActive: true,
-      // 특정 서비스(ALL 또는 AUTH)에 대한 차단인지 확인
-      OR: [
-        { endAt: null }, // 영구 차단
-        { endAt: { gt: now } } // 아직 만료되지 않은 차단
-      ]
-    }
-  });
-
-  return activeSanction;
-}
-
 export async function AuthSignup(email: string, handle: string, password: string, ip: string, acceptLanguage: string) {
   try {
-    const ban = await isIpBanned(ip);
-    if (ban) return { success: false, message: '가입할 수 없습니다.' };
-
     // 1. 중복 확인 (이메일 & 핸들)
     const existingUser = await prisma.user.findFirst({
       where: {
@@ -103,28 +82,23 @@ export async function AuthSignup(email: string, handle: string, password: string
     });
 
     return { success: true, userId: newUser.id };
-
   } catch (error) {
-    console.error('Database Signup Error:', error);
     return { success: false, message: '데이터베이스 저장 중 오류가 발생했습니다.' };
   }
 }
 
 export async function AuthLogin(email: string, password: string, ip: string, userAgent: string) {
   try {
-    const ban = await isIpBanned(ip);
-    if (ban) return { success: false, message: '가입할 수 없습니다.' };
-
     // 1. 유저 검증
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user || !user.password) {
-      return { success: false, message: '정보가 올바르지 않습니다.' };
-    }
+    if (!user || !user.password) return false;
 
     const isValid = await bcrypt.compare(password, user.password);
-    if (!isValid) {
-      return { success: false, message: '정보가 올바르지 않습니다.' };
-    }
+    if (!isValid) return false;
+
+    const cookieStore = await cookies();
+    const sessionId = cookieStore.get("session_id")?.value;
+    if (sessionId) { await AuthLogout(''); }
 
     // 2. 세션 토큰 생성 (랜덤 문자열)
     const sessionToken = crypto.randomUUID(); // 더 복잡하게 변경
@@ -151,7 +125,6 @@ export async function AuthLogin(email: string, password: string, ip: string, use
     });
 
     // 4. 쿠키에 세션 ID 심기 (HttpOnly로 보안 강화)
-    const cookieStore = await cookies();
     cookieStore.set("session_id", sessionToken, {
       domain: cookieUrl,
       httpOnly: true,
@@ -170,9 +143,9 @@ export async function AuthLogin(email: string, password: string, ip: string, use
       path: "/",
     });
 
-    return { success: true, message: '성공.' };
+    return true;
   } catch (error) {
-    return { success: false, message: '정보가 올바르지 않습니다.' };
+    return false;
   }
 }
 
@@ -188,23 +161,11 @@ async function UpdateSessionTime(id: string) {
   }
 }
 
-export async function GetSessionUser() {
+export async function GetSessionUserData() {
   try {
     const cookieStore = await cookies();
     const sessionId = cookieStore.get("session_id")?.value;
-    if (!sessionId) return {
-        user: {
-            id: 'true',
-            email: 'true',
-            handle: 'true',
-            displayName: 'true',
-            role: 'true',
-            bio: 'true',
-            avatarUrl: 'true',
-            locale: 'true',
-            // 패스워드 등 민감 정보는 제외
-        },
-      }; // delete here
+    if (!sessionId) return null;
 
     const session = await prisma.session.findUnique({
       where: {
@@ -222,7 +183,6 @@ export async function GetSessionUser() {
             bio: true,
             avatarUrl: true,
             locale: true,
-            // 패스워드 등 민감 정보는 제외
           }
         }
       }
@@ -239,7 +199,7 @@ export async function AuthLogout(id: string) {
   try {
     const cookieStore = await cookies();
     const sessionId = cookieStore.get("session_id")?.value;
-    if (!sessionId) return null;
+    if (!sessionId) return false;
 
     const session = await prisma.session.findUnique({
       where: {
@@ -254,36 +214,44 @@ export async function AuthLogout(id: string) {
         }
       }
     });
-    if (!session) return null;
+    if (!session) return false;
 
     // 현재 세션 삭제
-    if (!id) {
+    if (id) {
+      // 본인 확인 (현재 세션 유저의 데이터인지)
+      const sessionToDelete = await prisma.session.findUnique({
+        where: {
+          id,
+          userId: session.userId
+        },
+        include: { user: true }
+      });
+      if (!sessionToDelete && session.user.role != 'ADMIN') return false;
+
+      // 삭제 실행
+      await prisma.session.delete({
+        where: { id }
+      });
+
+    } else {
       await prisma.session.deleteMany({
         where: {
           sessionToken: session.sessionToken,
           userId: session.userId,
         }
       });
-
-      cookieStore.delete("session_id");
-      cookieStore.delete("locale");
-
-      return true;
     }
 
-    // 본인 확인 (현재 세션 유저의 데이터인지)
-    const sessionToDelete = await prisma.session.findUnique({
-      where: {
-        id,
-        userId: session.userId
-      },
-      include: { user: true }
+    cookieStore.delete({
+      name: "session_id",
+      domain: cookieUrl,
+      path: "/",
     });
-    if (!sessionToDelete && session.user.role != 'ADMIN') return false;
 
-    // 삭제 실행
-    await prisma.session.delete({
-      where: { id }
+    cookieStore.delete({
+      name: "locale",
+      domain: cookieUrl,
+      path: "/",
     });
 
     return true;
@@ -296,7 +264,7 @@ export async function AuthWithdraw() {
   try {
     const cookieStore = await cookies();
     const sessionId = cookieStore.get("session_id")?.value;
-    if (!sessionId) return null;
+    if (!sessionId) return false;
 
     const session = await prisma.session.findUnique({
       where: {
@@ -307,7 +275,7 @@ export async function AuthWithdraw() {
         userId: true
       }
     });
-    if (!session) return null;
+    if (!session) return false;
 
     const userId = session.userId;
 
@@ -345,6 +313,7 @@ export async function GetUserProfile(id: string) {
   }
 }
 
+// admin
 export async function GetUserProfiles(page: number, itemsPerPage: number = 100) {
   try {
     // 1. 전체 카운트와 데이터를 동시에 조회
@@ -621,216 +590,6 @@ export async function GetUserSessions(uuid: string = '') {
   }
 }
 
-interface LogParams {
-  actorId: string;    // 수행 관리자 ID
-  actorIp: string;    // 관리자 IP
-  action: string;     // 작업 종류 (예: "ROLE_UPDATE")
-  targetType?: string; // 대상 종류 (예: "USER")
-  targetId?: string;   // 대상 ID
-  beforeData?: any;    // 변경 전 스냅샷
-  afterData?: any;     // 변경 후 스냅샷
-  description?: string;
-}
-
-export async function createAuditLog({
-  actorId,
-  actorIp,
-  action,
-  targetType,
-  targetId,
-  beforeData,
-  afterData,
-  description
-}: LogParams) {
-  return await prisma.audit_log.create({
-    data: {
-      actorId,
-      actorIp,
-      action,
-      targetType,
-      targetId,
-      // JSON 데이터를 저장할 때는 null 처리에 유의
-      beforeData: beforeData ? JSON.parse(JSON.stringify(beforeData)) : null,
-      afterData: afterData ? JSON.parse(JSON.stringify(afterData)) : null,
-      description,
-    },
-  });
-}
-
-export async function GetAuditLogs(page: number, itemsPerPage: number = 100) {
-  try {
-    // 1. 전체 카운트와 데이터를 동시에 조회
-    const [totalCount, logs] = await prisma.$transaction([
-      prisma.audit_log.count(),
-      prisma.audit_log.findMany({
-        skip: (page - 1) * itemsPerPage,
-        take: itemsPerPage,
-        orderBy: { createdAt: 'desc' },
-      }),
-    ]);
-
-    return {
-      totalCount,
-      totalPages: Math.ceil(totalCount / itemsPerPage),
-      results: logs,
-      pages: makePageList(page, Math.ceil(totalCount / itemsPerPage)),
-    };
-  } catch (error) {
-    return { totalCount: 0, totalPages: 0, results: [] };
-  }
-}
-
-export async function AdminBanUser({ targetId, targetIp, type, reason, endAt, adminIp }: any) {
-  try {
-    return await prisma.$transaction(async (tx) => {
-      const cookieStore = await cookies();
-      const currentToken = cookieStore.get("session_id")?.value || '';
-      if (!currentToken) return { success: false, message: '세션 오류.' };
-
-      // 1. 어드민 권한 확인
-      const session = await tx.session.findUnique({
-        where: { sessionToken: currentToken },
-        select: {
-          user: {
-            select: {
-              id: true,
-              role: true
-            }
-          },
-        }
-      });
-      if (!session || session.user.role != 'ADMIN') return false;
-
-      // 1. 제재(Sanction) 레코드 생성
-      const newSanction = await tx.sanction.create({
-        data: {
-          targetId,
-          targetIp,
-          type,
-          reason,
-          adminId: session.user.id,
-          endAt: endAt ? new Date(endAt) : null,
-        },
-      });
-
-      // 2. 유저 계정 상태 업데이트 (로그인 차단일 경우)
-      if (targetId && (type === "BAN" || type === "PERMANENT_BAN")) {
-        await tx.user.update({
-          where: { id: targetId },
-          data: { status: "BANNED" },
-        });
-
-        // 3. 해당 유저의 모든 활성 세션 삭제 (즉시 로그아웃 강제)
-        await tx.session.deleteMany({
-          where: { userId: targetId },
-        });
-      }
-
-      // 4. 감사 로그 기록
-      await createAuditLog({
-        actorId: session.user.id,
-        actorIp: adminIp,
-        action: `SANCTION_${type}`,
-        targetType: "USER",
-        targetId: targetId || "IP_TARGET",
-        description: `${targetId || targetIp} 대상에게 ${type} 제재 부여`,
-        afterData: newSanction,
-      });
-
-      return true;
-    });
-  } catch (error) {
-    return false;
-  }
-}
-
-export async function AdminUnbanUser({ targetId, targetIp, adminIp }: any) {
-  try {
-    return await prisma.$transaction(async (tx) => {
-      const cookieStore = await cookies();
-      const currentToken = cookieStore.get("session_id")?.value || '';
-      if (!currentToken) return { success: false, message: '세션 오류.' };
-
-      // 1. 어드민 권한 확인
-      const session = await tx.session.findUnique({
-        where: { sessionToken: currentToken },
-        select: {
-          user: {
-            select: {
-              id: true,
-              role: true
-            }
-          },
-        }
-      });
-      if (!session || session.user.role !== 'ADMIN') return false;
-
-      // 2. 활성화된 제재 레코드 무효화 (isActive: false 또는 삭제)
-      // 특정 유저 혹은 특정 IP에 걸려있는 '진행 중'인 모든 제재를 해제합니다.
-      const updatedSanctions = await tx.sanction.updateMany({
-        where: {
-          OR: [
-            { targetId: targetId },
-            { targetIp: targetIp }
-          ],
-          isActive: true, // 현재 활성화된 것만
-        },
-        data: {
-          isActive: false,
-          // 해제 시점 기록이 필요하다면 별도 필드를 사용할 수도 있습니다.
-        },
-      });
-
-      // 3. 유저 계정 상태 복구 (상태가 BANNED인 경우에만 ACTIVE로)
-      if (targetId) {
-        await tx.user.update({
-          where: { id: targetId },
-          data: { status: "ACTIVE" },
-        });
-      }
-
-      // 4. 감사 로그 기록 (해제 액션)
-      await createAuditLog({
-        actorId: session.user.id,
-        actorIp: adminIp,
-        action: `UNBAN_USER`,
-        targetType: "USER",
-        targetId: targetId || "IP_TARGET",
-        description: `${targetId || targetIp} 대상의 제재를 해제함`,
-        afterData: { unbannedCount: updatedSanctions.count },
-      });
-
-      return true;
-    });
-  } catch (error) {
-    return false;
-  }
-}
-
-export async function GetBanList(page: number, itemsPerPage: number = 100) {
-  try {
-    // 1. 전체 카운트와 데이터를 동시에 조회
-    const [totalCount, logs] = await prisma.$transaction([
-      prisma.sanction.count({ where: { isActive: true } }),
-      prisma.sanction.findMany({
-        where: { isActive: true },
-        skip: (page - 1) * itemsPerPage,
-        take: itemsPerPage,
-        orderBy: { createdAt: 'desc' },
-      }),
-    ]);
-
-    return {
-      totalCount,
-      totalPages: Math.ceil(totalCount / itemsPerPage),
-      results: logs,
-      pages: makePageList(page, Math.ceil(totalCount / itemsPerPage)),
-    };
-  } catch (error) {
-    return { totalCount: 0, totalPages: 0, results: [] };
-  }
-}
-
 export async function CheckSystemLock() {
   try {
     //main()
@@ -875,7 +634,7 @@ export async function UpdateSystemSettings(key: "isReadOnlyMode" | "isRegistrati
     if (!session || session.user.role !== 'ADMIN') return false;
 
     await prisma.system_settings.upsert({
-      where: { id: "SYSTEM_CONFIG" }, // 고정된 ID 사용
+      where: { id: "SYSTEM_CONFIG" },
       update: { [key]: value },
       create: {
         id: "SYSTEM_CONFIG",
@@ -883,24 +642,43 @@ export async function UpdateSystemSettings(key: "isReadOnlyMode" | "isRegistrati
         isRegistrationClosed: key === "isRegistrationClosed" ? value : false,
       },
     });
-
-    // 변경 사항을 즉시 반영하기 위해 캐시 갱신
-    //revalidatePath("/admin/settings");
     return true;
   } catch (error) {
-    console.error(error);
     return false;
   }
 }
 
-async function main() {
-  await prisma.system_settings.upsert({
-    where: { id: "SYSTEM_CONFIG" }, // 고유 ID 부여
-    update: {},
-    create: {
-      id: "SYSTEM_CONFIG",
-      isReadOnlyMode: false,
-      isRegistrationClosed: false,
-    },
-  })
+export async function main() {
+  try {
+    // 초기 설정
+    await prisma.system_settings.upsert({
+      where: { id: "SYSTEM_CONFIG" },
+      update: {},
+      create: {
+        id: "SYSTEM_CONFIG",
+        isReadOnlyMode: false,
+        isRegistrationClosed: false,
+      },
+    })
+
+    // 초기 어드민 계정
+    const hashedPassword = await bcrypt.hash('admin', 10);
+    await prisma.user.create({
+      data: {
+        handle: 'admin',
+        displayName: 'admin',
+        email: 'admin@admin.com',
+        password: hashedPassword,
+        role: 'ADMIN',
+        regIp: 'localhost',
+        lastIp: 'localhost',
+        countryCode: getCountryCode('localhost'),
+        status: 'ACTIVE',
+        isEmailVerified: false,
+        locale: getClientLocale('KR'), // 기본 언어 설정 (나중에 헤더에서 추출 가능)
+      }
+    });
+
+  } catch (error) {
+  }
 }

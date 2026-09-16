@@ -2,8 +2,10 @@
 import { NextResponse } from "next/server";
 import { AuthLogout } from '@/lib/auth';
 
+const connectionString = process.env.WEB_URL || "http://localhost:80";
+
 const corsHeaders = {
-  "Access-Control-Allow-Origin": "http://localhost:3001",
+  "Access-Control-Allow-Origin": connectionString,
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
   "Access-Control-Allow-Credentials": "true",

@@ -8,7 +8,6 @@ datasource db {
 
 enum Role {
   USER
-  MODERATOR
   ADMIN
 }
 
@@ -75,72 +74,6 @@ model session {
   lastActive   DateTime @default(now())
 
   user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model sanction {
-  id            String    @id @default(uuid())
-  targetId      String?   // 제재 대상 유저 ID (비로그인 IP 차단일 경우 null)
-  targetIp      String?   // 제재 대상 IP 또는 대역 (예: 123.45.67.89/24)
-  
-  type          String    // 제재 유형: BAN(로그인차단), MUTE(편집금지), SHADOW_BAN
-  serviceName   String    @default("ALL") // 제재 적용 서비스
-  
-  reason        String    @db.VarChar(500)
-  evidenceUrl   String?   // 증거 스크린샷이나 관련 로그 링크
-  
-  adminId       String    // 처분한 관리자 ID
-  
-  startAt       DateTime  @default(now())
-  endAt         DateTime? // null이면 영구 차단
-  
-  isActive      Boolean   @default(true) // 수동 해제 여부
-  createdAt     DateTime  @default(now())
-
-  @@index([targetId])
-  @@index([targetIp])
-}
-
-model report {
-  id            String    @id @default(uuid())
-  reporterId    String    // 신고자 ID
-  
-  targetId      String    // 대상의 고유 ID (유저 ID 혹은 문서 Revision ID 등)
-  targetType    String    // 신고 대상 종류: USER, DOCUMENT, COMMENT
-  serviceName   String    // 신고가 발생한 서비스 명칭
-  
-  category      String    // 신고 카테고리: VANDALISM(반달), INSULT(욕설), AD(광고) 등
-  content       String    @db.VarChar(1000)
-  
-  status        String    @default("PENDING") // 상태: PENDING, PROCESSING, RESOLVED, REJECTED
-  adminComment  String?   // 관리자 처리 답변/메모
-  adminId       String?   // 담당 관리자 ID
-  
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-
-  @@index([status])
-}
-
-model audit_log {
-  id            String    @id @default(uuid())
-  actorId       String    // 행위자 ID (관리자 혹은 시스템)
-  actorIp       String    // 행위 당시 IP
-  
-  action        String    // 수행 작업: LOGIN, USER_UPDATE, ROLE_CHANGE, BAN_CREATE 등
-  targetType    String?   // 작업 대상 종류: USER, SETSETTING, SYSTEM
-  targetId      String?   // 작업 대상의 고유 ID
-  
-  // 변경 전/후 데이터를 JSON 형태로 저장 (Diff 확인용)
-  beforeData    Json?
-  afterData     Json?
-  
-  description   String?   @db.VarChar(500) // 구체적인 행위 설명
-  
-  createdAt     DateTime  @default(now())
-
-  @@index([actorId])
-  @@index([targetId])
-  @@index([action])
 }
 
 model system_settings {

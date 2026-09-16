@@ -1,5 +1,4 @@
 "use client"
-import { usePathname } from "next/navigation"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation";
 
@@ -31,7 +30,6 @@ import { KeyRound, Smartphone, Globe } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch"
-import { User, Lock, Bell, ShieldCheck, Eye } from "lucide-react"
 import { toast } from "sonner"
 
 export function ProfileSettings(data: any) {
@@ -80,7 +78,6 @@ export function ProfileSettings(data: any) {
           <CardDescription>다른 사용자들에게 표시되는 정보입니다.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* 아바타 섹션 (추후 이미지 업로드 로직 추가 가능) */}
           <div className="flex items-center gap-6 p-4 bg-muted/20 rounded-xl">
             <Avatar className="h-20 w-20 border-2 border-background shadow-sm">
               <AvatarImage src={imageData || "/img/profile.png"} />
@@ -205,7 +202,7 @@ export function SecuritySettings() {
 
     setIsPending(true)
     try {
-      const response = await fetch("/api/user/security/password", {
+      const response = await fetch("/api/user/password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -233,7 +230,7 @@ export function SecuritySettings() {
   const [sessions, setSessions] = useState<any[]>([])
 
   const fetchSessions = async () => {
-    const res = await fetch("/api/user/security/sessions")
+    const res = await fetch("/api/user/sessions")
     if (res.ok) setSessions(await res.json())
   }
 
@@ -373,7 +370,7 @@ export function PrivacySettings() {
 
       if (res.ok) {
         toast.success("그동안 이용해주셔서 감사합니다.");
-        router.push("/"); // 메인 페이지로 이동
+        router.push("/");
         router.refresh();
       } else {
         toast.error("탈퇴 처리에 실패했습니다.");
@@ -405,7 +402,7 @@ export function PrivacySettings() {
                   계정을 영구적으로 삭제합니다
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  계정을 삭제하면 모든 기여 기록이 익명화되며 되돌릴 수 없습니다.
+                  계정을 삭제하면 모든 기록이 익명화되며 되돌릴 수 없습니다.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

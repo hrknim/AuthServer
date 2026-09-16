@@ -1,7 +1,8 @@
-"use client" // 세션 훅을 사용하므로 클라이언트 컴포넌트여야 합니다.
+"use client"
 
-import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation";
 
 import {
   Popover,
@@ -43,6 +44,7 @@ interface Props {
 export default function Userbar({ ut, authServer }: Props) {
   const [session, setUser] = useState<AuthUser | null>(null)
   const pathname = usePathname();
+  const router = useRouter();
 
   const fetchUser = async () => {
     try {
@@ -69,7 +71,9 @@ export default function Userbar({ ut, authServer }: Props) {
         credentials: 'include', 
       })
       if (res.ok) {
-        const data = await res.json()
+        //const data = await res.json();
+        router.push("/");
+        router.refresh();
         setUser(null)
       } 
     } catch (error) {

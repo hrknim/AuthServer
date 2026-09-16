@@ -9,8 +9,11 @@ export async function POST(req: Request) {
     const ipAddress = req.headers.get("x-forwarded-for") || 'unknown';
 
     const result = await AuthLogin(email, password, ipAddress, userAgent);
-    if (result.success) {
+
+    if (result) {
       return NextResponse.json({ message: "로그인 성공" });
+    } else {
+      return NextResponse.json({ message: "로그인 실패" }, { status: 401 });
     }
   } catch (error) {
     return NextResponse.json({ message: "서버 오류" }, { status: 500 });
