@@ -1,9 +1,15 @@
 import { NextResponse } from 'next/server';
-import { AuthSignup } from '@/lib/auth';
+import { AuthSignup, CheckSystemLock } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
     const { email, handle, password } = await req.json();
+
+    // 0. 보안
+    const system = await CheckSystemLock();
+    if (system.isRegistrationClosed) {
+      return NextResponse.json({ message: "Emergency Lock Active" }, { status: 503 });
+    }
 
     const ip = req.headers.get('x-forwarded-for')?.split(',')[0];
     const acceptLanguage = req.headers.get('accept-language');
@@ -23,13 +29,13 @@ export async function POST(req: Request) {
     // 영문 소문자와 숫자만 허용 (URL 일관성을 위해 소문자 권장), 3~20자
     const handleRegex = /^[a-z0-9_]{3,20}$/;
     const reservedHandles = ['admin', 'system', 'root', 'manager', 'official'];
-    
+
     if (!handleRegex.test(handle)) {
-      return NextResponse.json({ 
-        message: '핸들은 영문 소문자, 숫자, 언더바(_) 조합으로 3~20자여야 합니다.' 
+      return NextResponse.json({
+        message: '핸들은 영문 소문자, 숫자, 언더바(_) 조합으로 3~20자여야 합니다.'
       }, { status: 400 });
     }
-    
+
     if (reservedHandles.includes(handle.toLowerCase())) {
       return NextResponse.json({ message: '사용할 수 없는 핸들 이름입니다.' }, { status: 400 });
     }

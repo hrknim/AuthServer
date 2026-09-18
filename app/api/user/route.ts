@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
-import { GetSessionUserData } from '@/lib/auth';
+import { GetSessionUserData, CheckSystemLock } from '@/lib/auth';
 
 const connectionString = process.env.WEB_URL || "http://localhost:80";
 
 export async function GET(req: Request) {
   try {
+    const system = await CheckSystemLock();
+    if (system.isReadOnlyMode) {
+      return NextResponse.json({ message: "Emergency Lock Active" }, { status: 503 });
+    }
+
     const session = await GetSessionUserData();
-    const response = session
-      ? NextResponse.json({ result: session?.user || '' })
+    const response = session && session.user
+      ? NextResponse.json({ result: session.user })
       : NextResponse.json({ error: "권한 없음" }, { status: 401 });
 
     // CORS 및 Credentials 허용 헤더 추가

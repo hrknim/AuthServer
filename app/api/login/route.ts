@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
-import { AuthLogin } from '@/lib/auth';
+import { AuthLogin, CheckSystemLock } from '@/lib/auth';
 
 export async function POST(req: Request) {
   try {
     const { email, password } = await req.json();
+
+    // 0. 보안
+    const system = await CheckSystemLock();
+    if (system.isRegistrationClosed) {
+      return NextResponse.json({ message: "Emergency Lock Active" }, { status: 503 });
+    }
 
     const userAgent = req.headers.get("user-agent") || '';
     const ipAddress = req.headers.get("x-forwarded-for") || 'unknown';

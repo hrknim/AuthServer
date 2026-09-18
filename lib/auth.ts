@@ -678,7 +678,7 @@ export async function main() {
         countryCode: getCountryCode('localhost'),
         status: 'ACTIVE',
         isEmailVerified: false,
-        locale: getClientLocale('ko'), // 기본 언어 설정 (나중에 헤더에서 추출 가능)
+        locale: getClientLocale('ko'),
       }
     });
 

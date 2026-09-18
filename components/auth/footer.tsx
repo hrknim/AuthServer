@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { t, Lang, normalizeLang } from '@/lib/global';
+import { t, Lang } from '@/lib/global';
 
 interface Props {
   translate: Lang;
