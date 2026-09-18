@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/sonner"
 
 import Footer from '@/components/auth/footer';
 import Header from '@/components/auth/header';
+import Layout from '@/components/auth/layout';
 import { GetCurrentLanguage } from '@/lib/global'
 
 import "./globals.css";
@@ -46,15 +47,9 @@ export default async function RootLayout({
           enableColorScheme={true}
           disableTransitionOnChange
         >
-          <div className="flex flex-col min-h-screen">
-            <Header language={translate} translate={translate} hideSearchbar={false}/>
-            
-            <main className="flex-1 mx-auto grid max-w-[100rem] grid-cols-12 gap-8 px-6 py-6 w-full">
-              {children}
-            </main>
-
-            <Footer language={translate} translate={translate}/>
-          </div>
+          <Layout translate={translate} hideSearchbar={false} >
+            {children}
+          </Layout>
           <Toaster richColors position="top-center" />
         </ThemeProvider>
       </body>

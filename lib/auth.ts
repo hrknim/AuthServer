@@ -663,8 +663,11 @@ export async function main() {
 
     // 초기 어드민 계정
     const hashedPassword = await bcrypt.hash('admin', 10);
-    await prisma.user.create({
-      data: {
+    await prisma.user.upsert({
+      where: { id: "00000000-0000-4000-0000-000000000000" },
+      update: {},
+      create: {
+        id: "00000000-0000-4000-0000-000000000000",
         handle: 'admin',
         displayName: 'admin',
         email: 'admin@admin.com',
@@ -675,7 +678,7 @@ export async function main() {
         countryCode: getCountryCode('localhost'),
         status: 'ACTIVE',
         isEmailVerified: false,
-        locale: getClientLocale('KR'), // 기본 언어 설정 (나중에 헤더에서 추출 가능)
+        locale: getClientLocale('ko'), // 기본 언어 설정 (나중에 헤더에서 추출 가능)
       }
     });
 

@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { Metadata } from "next";
+import { notFound } from 'next/navigation'
 
 import { MessageSquareDiff, EyeOff, Zap, ShieldAlert, KeyRound, User, Lock, LayoutDashboard, History, Flag, Settings } from "lucide-react";
-import { GetSessionUserData, GetUserProfile, GetUserProfiles, GetUserSessions, CheckSystemLock } from '@/lib/auth';
+import { main, GetSessionUserData, GetUserProfile, GetUserProfiles, GetUserSessions, CheckSystemLock } from '@/lib/auth';
 import { t, GetCurrentLanguage } from '@/lib/global';
 import {
   AdminDashboard,
@@ -30,11 +31,11 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
 
 export default async function AdminPage({ searchParams }: Props) {
   const { t: type = 'dashboard', p: page = '1', u: uuid = '' } = await searchParams;
-  const language = 'en';
-  const translate = await GetCurrentLanguage(language);
+  const translate = await GetCurrentLanguage();
   const session = await GetSessionUserData();
 
-  //if (session?.user.role != 'ADMIN') return notFound();
+  await main();
+  if (session?.user.role != 'ADMIN') return notFound();
 
   const sidebarNavItems = [
     { title: "대시보드", href: "dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },

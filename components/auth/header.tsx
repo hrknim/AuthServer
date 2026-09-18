@@ -27,12 +27,11 @@ const CATEGORIES = [
 ];
 
 interface Props {
-  language: Lang;
   translate: Lang;
   hideSearchbar: boolean;
 }
 
-export default function Header({ language, translate, hideSearchbar = false }: Props) {
+export default function Header({ translate, hideSearchbar = false }: Props) {
   return (
     <header className="sticky top-0 z-2 h-[4rem] bg-background/95">
       <div className="flex mx-auto h-full items-center justify-between max-w-[100rem] px-4 gap-4">
@@ -66,7 +65,6 @@ export default function Header({ language, translate, hideSearchbar = false }: P
                       transition-all duration-300 ease-in-out
                       transform hover:-translate-y-0.5"
                   >
-                    {/* 1. 아이콘 영역 */}
                     <category.icon
                       className={`w-8 h-8 mb-1 shrink-0
                         ${category.color} 
@@ -74,7 +72,6 @@ export default function Header({ language, translate, hideSearchbar = false }: P
                         group-hover:scale-110`}
                     />
 
-                    {/* 2. 텍스트 영역 */}
                     <span className="text-[0.8rem] font-medium text-center block w-full truncate tracking-tight
                       group-hover:scale-105 transition-all duration-300 ease-out opacity-90 group-hover:opacity-100"
                     >

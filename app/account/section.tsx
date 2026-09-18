@@ -387,7 +387,7 @@ export function PrivacySettings() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg text-destructive">계정 삭제</CardTitle>
-          <CardDescription>계정을 삭제하면 모든 기여 기록이 익명화되며 되돌릴 수 없습니다.</CardDescription>
+          <CardDescription>계정을 삭제하면 모든 기록이 삭제되며 되돌릴 수 없습니다.</CardDescription>
         </CardHeader>
         <CardContent>
           <AlertDialog>
@@ -402,7 +402,7 @@ export function PrivacySettings() {
                   계정을 영구적으로 삭제합니다
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  계정을 삭제하면 모든 기록이 익명화되며 되돌릴 수 없습니다.
+                  계정을 삭제하면 모든 기록이 삭제되며 되돌릴 수 없습니다.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>

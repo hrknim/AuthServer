@@ -49,7 +49,6 @@ export default function Userbar({ ut, authServer }: Props) {
   const fetchUser = async () => {
     try {
       const res = await fetch(`${authServer}/api/user`, {
-        // 이 옵션이 없으면 브라우저가 쿠키를 서버로 보내지 않습니다.
         credentials: 'include', 
       })
       if (res.ok) {
