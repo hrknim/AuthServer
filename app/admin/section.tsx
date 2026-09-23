@@ -1,4 +1,5 @@
 "use client"
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation";
 
@@ -15,20 +16,14 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow
-} from "@/components/ui/table";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  Bell, ShieldCheck, Copy, AlertOctagon, AlertTriangle,
-  Download, ShieldAlert, UserX, BookOpen, Plus, ChevronRight, GoalIcon, UserCircle, ShieldBan, MoreHorizontal, Search
-} from "lucide-react";
+import { ShieldCheck, AlertOctagon, ShieldAlert, UserCircle, MoreHorizontal, Search } from "lucide-react";
 import { toast } from "sonner"
 
 import PageNav from '@/components/auth/PageNav';
 
 export function AdminDashboard(data: any) {
-
   return (
     <>
       <div className="flex flex-col space-y-2 mb-8">
@@ -39,7 +34,6 @@ export function AdminDashboard(data: any) {
       </div>
 
       <div className="space-y-6">
-        {/* 1. 핵심 계정 지표 */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <Card>
             <CardHeader className="pb-2">
@@ -90,7 +84,6 @@ export function AdminDashboard(data: any) {
           </Card>
         </div>
 
-        {/* 2. 확장성: 서비스별 유입 현황 (이게 핵심!) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
             <CardHeader>
@@ -98,7 +91,6 @@ export function AdminDashboard(data: any) {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {/* 나중에 서비스가 추가될 때마다 리스트가 늘어남 */}
                 <div className="flex items-center justify-between">
                   <span className="text-xs">서비스</span>
                   <span className="text-xs font-bold">85%</span>
@@ -118,7 +110,6 @@ export function AdminDashboard(data: any) {
             </CardContent>
           </Card>
 
-          {/* 3. 보안 모니터링: 비정상 로그인 시도 */}
           <Card>
             <CardHeader>
               <CardTitle className="text-sm font-bold text-orange-600 flex items-center gap-2">

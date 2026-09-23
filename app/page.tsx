@@ -1,4 +1,4 @@
-import { redirect, RedirectType } from 'next/navigation';
+import { redirect } from 'next/navigation';
 import { GetSessionUserData } from '@/lib/auth';
 
 export default async function Home() {

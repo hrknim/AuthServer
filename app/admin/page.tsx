@@ -1,17 +1,12 @@
 import { cn } from "@/lib/utils"
 import Link from "next/link"
 import { Metadata } from "next";
-import { notFound } from 'next/navigation'
+import { redirect } from 'next/navigation';
+import { User, LayoutDashboard, Settings } from "lucide-react";
 
-import { MessageSquareDiff, EyeOff, Zap, ShieldAlert, KeyRound, User, Lock, LayoutDashboard, History, Flag, Settings } from "lucide-react";
 import { main, GetSessionUserData, GetUserProfile, GetUserProfiles, GetUserSessions, CheckSystemLock } from '@/lib/auth';
 import { t, GetCurrentLanguage } from '@/lib/global';
-import {
-  AdminDashboard,
-  UserManagementPage,
-  UserDetailPage,
-  SystemSettingsPage
-} from './section'
+import { AdminDashboard, UserManagementPage, UserDetailPage, SystemSettingsPage } from './section'
 
 type Props = {
   searchParams: Promise<{
@@ -21,32 +16,39 @@ type Props = {
   }>;
 };
 
+const sidebarNavItems = [
+  { title: "대시보드", href: "dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
+  { title: "유저 관리", href: "users", icon: <User className="w-4 h-4" /> },
+  { title: "유저 상세 내역", href: "userdetails", icon: <User className="w-4 h-4" /> },
+  { title: "시스템 설정", href: "settings", icon: <Settings className="w-4 h-4" /> },
+]
+
 export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const translate = await GetCurrentLanguage();
+  const { t: type = 'profile' } = await searchParams;
+  //const translate = await GetCurrentLanguage();
+
+  const title = `Admin - 
+    ${(type == 'dashboard') ? ('대시보드') :
+      (type == 'users') ? ('유저 관리') :
+        (type == 'userdetails') ? ('유저 상세 내역') :
+          (type == 'settings') ? ('시스템 설정') : ('')}`
 
   return {
-    title: `Admin`,
+    title: title,
   };
 }
 
 export default async function AdminPage({ searchParams }: Props) {
   const { t: type = 'dashboard', p: page = '1', u: uuid = '' } = await searchParams;
-  const translate = await GetCurrentLanguage();
+  //const translate = await GetCurrentLanguage();
   const session = await GetSessionUserData();
 
   await main();
-  if (session?.user.role != 'ADMIN') return notFound();
+  if (session?.user.role != 'ADMIN') {
+    redirect(`/login`);
+  }
 
-  const sidebarNavItems = [
-    { title: "대시보드", href: "dashboard", icon: <LayoutDashboard className="w-4 h-4" /> },
-    { title: "유저 관리", href: "users", icon: <User className="w-4 h-4" /> },
-    { title: "유저 상세 내역", href: "userdetails", icon: <User className="w-4 h-4" /> },
-    { title: "시스템 설정", href: "settings", icon: <Settings className="w-4 h-4" /> },
-  ]
-
-  // 1. 현재 상태 파악 (URL 파라미터 기준)
   const currentPage = parseInt(page, 10) || 1;
-
   let data = null;
   let usersession = null;
   switch (type) {

@@ -2,16 +2,15 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { AtSign, Mail, Lock, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
 export default function SignUpPage() {
   const router = useRouter();
-  //const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
@@ -23,7 +22,6 @@ export default function SignUpPage() {
   const handleSubmit = async (e: any) => {
     e.preventDefault()
 
-    // 1. 기본 유효성 검사
     if (formData.password !== formData.confirmPassword) {
       toast.error("비밀번호가 일치하지 않습니다.")
       return
@@ -76,7 +74,6 @@ export default function SignUpPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handleSubmit}>
-                {/* 고유 핸들 (@) */}
                 <div className="space-y-2 my-4">
                   <Label htmlFor="handle">고유 핸들</Label>
                   <div className="relative">
@@ -93,7 +90,6 @@ export default function SignUpPage() {
                   <p className="text-[0.65rem] text-muted-foreground">URL 주소에 사용될 고유 식별자입니다.</p>
                 </div>
 
-                {/* 이메일 */}
                 <div className="space-y-2 my-4">
                   <Label htmlFor="email">이메일</Label>
                   <div className="relative">
@@ -110,7 +106,6 @@ export default function SignUpPage() {
                   </div>
                 </div>
 
-                {/* 비밀번호 */}
                 <div className="space-y-2 my-4">
                   <Label htmlFor="password">비밀번호</Label>
                   <div className="relative">
@@ -126,7 +121,6 @@ export default function SignUpPage() {
                   </div>
                 </div>
 
-                {/* 비밀번호 확인 */}
                 <div className="space-y-2 my-4">
                   <Label htmlFor="confirm-password">비밀번호 확인</Label>
                   <div className="relative">

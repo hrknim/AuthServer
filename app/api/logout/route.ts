@@ -1,4 +1,3 @@
-// /api/auth/logout-device/route.ts
 import { NextResponse } from "next/server";
 import { AuthLogout } from '@/lib/auth';
 

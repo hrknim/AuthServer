@@ -1,4 +1,3 @@
-// app/api/admin/sanctions/route.ts
 import { NextResponse } from "next/server";
 import { UpdateSystemSettings } from '@/lib/auth';
 

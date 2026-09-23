@@ -1,5 +1,3 @@
-import { redirect, RedirectType } from 'next/navigation';
-
 export default async function PageNotFound() {
-  redirect(`/login`);
+  return (<div>잘못된 페이지입니다.</div>)
 }

@@ -46,13 +46,11 @@ export async function POST(req: Request) {
     }
 
     // 5. DB 등록 시도
-    // AuthSignup 내부에서 중복 체크(Email, Handle)를 수행한다고 가정
     const result = await AuthSignup(email, handle, password, ip, acceptLanguage);
 
     if (result.success) {
       return NextResponse.json({ message: '회원가입이 완료되었습니다.' }, { status: 201 });
     } else {
-      // DB 중복 등의 사유로 실패한 경우 (result.message에 "이미 사용 중인..." 등의 정보 포함)
       return NextResponse.json({ message: result.message }, { status: 409 });
     }
   } catch (error) {

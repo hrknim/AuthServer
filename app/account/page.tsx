@@ -1,10 +1,11 @@
 import Link from "next/link"
+import { Metadata } from "next";
 import { redirect } from 'next/navigation';
-import { cn } from "@/lib/utils"
-import { User, Lock, Bell, ShieldCheck, Eye } from "lucide-react"
+import { User, Lock, Bell, ShieldCheck } from "lucide-react"
 
 import { GetSessionUserData } from '@/lib/auth';
 import { LANG_GROUPS } from '@/lib/global'
+import { cn } from "@/lib/utils"
 import { ProfileSettings, SecuritySettings, NotificationSettings, PrivacySettings } from './section'
 
 const sidebarNavItems = [
@@ -20,15 +21,26 @@ type Props = {
   }>;
 };
 
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { t: type = 'profile' } = await searchParams;
+  //const translate = await GetCurrentLanguage();
+
+  const title = `계정 대시보드 - 
+    ${(type == 'profile') ? ('프로필') :
+      (type == 'security') ? ('보안') :
+        (type == 'notifications') ? ('알림') :
+          (type == 'privacy') ? ('개인정보') : ('')}`
+
+  return {
+    title: title,
+  };
+}
+
 export default async function SettingsLayout({ searchParams }: Props) {
   const { t: type = 'profile' } = await searchParams;
-  // 1. 서버 세션 가져오기
+  //const translate = await GetCurrentLanguage();
   const session = await GetSessionUserData();
-
-  // 2. 세션이 없으면 로그인 페이지로 리다이렉트하거나 에러 처리
-  if (!session) {
-    redirect(`/login`);
-  }
+  if (!session) { redirect(`/login`); }
 
   return (
     <>

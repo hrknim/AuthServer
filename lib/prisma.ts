@@ -22,7 +22,7 @@ export const adapter = new PrismaPg(pool);
 // 4. 전역 변수 설정 (Next.js 개발 모드 재연결 방지)
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
-// 5. ★중요: adapter를 반드시 인자로 전달해야 합니다★
+// 5. adapter를 반드시 인자로 전달해야 합니다
 export const prismaSetting = 
   globalForPrisma.prisma || 
   new PrismaClient({ 

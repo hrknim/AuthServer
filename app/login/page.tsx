@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Label } from "@/components/ui/label"
 import { Mail, Lock, Loader2 } from "lucide-react"
 import { toast } from "sonner"
 
@@ -22,7 +22,6 @@ export default function LoginPage() {
     setLoading(true)
 
     try {
-      // ✅ NextAuth 전용 로그인 함수 호출
       const response = await fetch('/api/login', {
         method: 'POST',
         credentials: "include",
@@ -34,11 +33,9 @@ export default function LoginPage() {
       })
 
       if (response.ok) {
-        // 로그인 성공
         router.push('/');
         router.refresh();
       } else {
-        // authorize에서 null을 리턴하거나 에러가 나면 여기로 들어옵니다.
         toast.error("이메일 또는 비밀번호가 올바르지 않습니다.")
       }
     } catch (error) {
@@ -64,7 +61,6 @@ export default function LoginPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <form onSubmit={handleLogin}>
-                {/* 이메일 입력 */}
                 <div className="space-y-2 my-4">
                   <Label htmlFor="email">이메일</Label>
                   <div className="relative">
@@ -81,11 +77,10 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* 비밀번호 입력 */}
                 <div className="space-y-2 my-4">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">비밀번호</Label>
-                    <a href="/forgot-password" className="text-[0.7rem] text-primary hover:underline">
+                    <a href="/" className="text-[0.7rem] text-primary hover:underline">
                       비밀번호를 잊으셨나요?
                     </a>
                   </div>

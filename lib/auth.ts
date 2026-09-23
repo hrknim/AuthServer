@@ -472,18 +472,6 @@ export async function AdminUpdateUserProfile(email: string, handle: string, disp
         }
       })
 
-      // 로그 생성 유틸리티 호출
-      await createAuditLog({
-        actorId: session.user.id,
-        actorIp: ip,
-        action: 'UPDATE_USER_PROFILE',
-        targetType: 'USER',
-        targetId: uuid,
-        beforeData: {},
-        afterData: {},
-        description: `유저 정보 변경`
-      });
-
       return {
         success: true,
         user: {
@@ -592,7 +580,6 @@ export async function GetUserSessions(uuid: string = '') {
 
 export async function CheckSystemLock() {
   try {
-    //main()
     // 시스템 설정 테이블에서 현재 상태 조회 (첫 번째 레코드)
     const settings = await prisma.system_settings.findFirst({
       select: {
