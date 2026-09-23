@@ -7,8 +7,7 @@ const nextConfig: NextConfig = {
 
 module.exports = {
   allowedDevOrigins: [
-    'web.solhae.com',
-    '210.119.82.84'
+    //'your ip'
   ],
 }
 
