@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
 
 module.exports = {
   allowedDevOrigins: [
-    //'your ip'
+    process.env.DEV_URL
   ],
 }
 

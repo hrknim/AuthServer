@@ -195,6 +195,31 @@ export async function GetSessionUserData() {
   }
 }
 
+export async function GetUserData(handle: string) {
+  try {
+    const session = await prisma.user.findUnique({
+      where: {
+        handle: handle,
+      },
+      select: {
+        id: true,
+        //email: true,
+        handle: true,
+        displayName: true,
+        role: true,
+        bio: true,
+        avatarUrl: true,
+        //locale: true,
+      }
+    });
+    if (!session) return null;
+
+    return session;
+  } catch (error) {
+    return null;
+  }
+}
+
 export async function AuthLogout(id: string) {
   try {
     const cookieStore = await cookies();
